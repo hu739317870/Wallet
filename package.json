@@ -1,0 +1,9 @@
+{
+  "scripts": {
+      "start": "npm install && node wallet.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "redis": "^4.6.8"
+  }
+}

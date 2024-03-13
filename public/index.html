@@ -1,0 +1,129 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>peanut wallet</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <style>
+    #wishlist {
+      width: 70%; /* 设置宽度为100%以占据父容器的宽度 */
+      height: auto; /* 设置高度为auto，允许根据内容自动扩展 */
+      min-height: 200px; /* 设置最小高度，以确保<textarea>不会缩小到太小的尺寸 */
+    }
+  </style>
+</head>
+<body>
+  <h2>花生米de钱包</h2>
+  <p id="displayText" style="font-size: larger;">余额 : </p>
+  <input type="number" id="balance" placeholder="0">
+  <button onclick="resetBalance()">更改余额</button>
+
+  <div>
+    <h2>愿望清单</h2>
+    <textarea id="wishlist"></textarea>
+    <button onclick="saveWishlist()">保存一下</button>
+  </div>
+
+  <script>
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', '/getBalance', true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+        const balance = JSON.parse(xhr.responseText);
+        const displayText = document.getElementById('displayText');
+        displayText.textContent = displayText.textContent + balance.balance;
+      } else if (xhr.readyState === XMLHttpRequest.DONE && xhr.status !== 200) {
+        alert('get balance failed');
+      }
+    };
+    xhr.send();
+
+    const xhr1 = new XMLHttpRequest();
+    xhr1.open('GET', '/getLikes', true);
+    xhr1.onreadystatechange = function () {
+      if (xhr1.readyState === XMLHttpRequest.DONE && xhr1.status === 200) {
+        const likes = JSON.parse(xhr1.responseText);
+        const wishlist = document.getElementById('wishlist');
+        // wishlist.value = likes.join('\n');
+        wishlist.value = likes.wishlist;
+      } else if (xhr1.readyState === XMLHttpRequest.DONE && xhr1.status !== 200) {
+        alert('get wishlist failed');
+      }
+    };
+    xhr1.send();
+  </script>
+
+  <script>
+    function resetBalance() {
+      balanceInput = document.getElementById('balance').value;
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/balance', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      if (!balanceInput) balanceInput = "0";
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 201) {
+          const displayText = document.getElementById('displayText');
+          displayText.textContent = "余额 : " + balanceInput;
+          alert('reset success');
+        } else if (xhr.readyState === XMLHttpRequest.DONE && xhr.status !== 201) {
+          alert('reset failed');
+        }
+      };
+      xhr.send(JSON.stringify({ balance: balanceInput }));
+    }
+
+    function saveWishlist() {
+      wishlist = document.getElementById('wishlist').value;
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/likes', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 201) {
+          alert('save wishlist success');
+        } else if (xhr.readyState === XMLHttpRequest.DONE && xhr.status !== 201) {
+          alert('save wishlist failed');
+        }
+      };
+      xhr.send(JSON.stringify({ wishlist: wishlist }));
+    }
+
+    function saveWishTable() {
+      var table = document.getElementById('wishTable');
+      var rows = table.getElementsByTagName('tr');
+      var data = [];
+      for (var i = 1; i < rows.length; i++) {
+          var row = rows[i];
+          var cells = row.getElementsByTagName('td');
+
+          var wish = cells[0].getElementsByTagName('input')[0].value;
+          var amount = cells[1].getElementsByTagName('input')[0].value;
+          var rowData = { "wish": wish, "amount": amount };
+          data.push(rowData);
+      }
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/wishTable', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+          if (xhr.readyState === XMLHttpRequest.DONE) {
+              if (xhr.status === 201) {
+                  alert('save wishlist success');
+              } else {
+                  alert('save wishlist failed');
+              }
+          }
+      };
+      xhr.send(JSON.stringify({ wishTable: data }));
+    }
+
+    function addOneRow() {
+      var table = document.getElementById("wishTable");
+      var row = table.insertRow(table.rows.length);
+      var cell1 = row.insertCell(0);
+      var cell2 = row.insertCell(1);
+      cell1.innerHTML = '<input type="text">';
+      cell2.innerHTML = '<input type="text">';
+    }
+  </script>
+</body>
+</html>
