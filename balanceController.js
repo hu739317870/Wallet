@@ -21,11 +21,15 @@ exports.getBalance = async (req, res) => {
 }
 
 exports.addOneBalance = async () => {
-    await client.incr('balance', (err) => {
+    const balance = await client.get('balance');
+    let num = Number(balance);
+    client.set('balance', num+3, (err) => {
         if (err) {
-            console.log("add balance failed")
+            console.log("add balance failed");
+	    return -1;
         }
     });
+    console.log("add balance success");
 }
 
 exports.postWishlist = async (req, res) => {
